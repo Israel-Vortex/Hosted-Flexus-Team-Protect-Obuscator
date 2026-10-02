@@ -1,0 +1,55 @@
+{
+  "version": 2,
+  "functions": {
+    "api/chunk.js": {
+      "includeFiles": "private/**"
+    },
+    "api/unwrap.js": {
+      "includeFiles": "private/**"
+    },
+    "api/script.js": {
+      "includeFiles": "private/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/scripts/loader.lua",
+      "destination": "/api/loader"
+    },
+    {
+      "source": "/loader",
+      "destination": "/api/loader"
+    },
+    {
+      "source": "/loader.lua",
+      "destination": "/api/loader"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, private"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Cross-Origin-Resource-Policy",
+          "value": "same-origin"
+        }
+      ]
+    }
+  ]
+}
