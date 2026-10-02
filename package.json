@@ -1,6 +1,0 @@
-{
-  "name": "vortex-script-host",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Vortex Lua script host on Vercel (loader + protected script)"
-}
