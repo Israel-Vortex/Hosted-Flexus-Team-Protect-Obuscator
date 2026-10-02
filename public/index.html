@@ -2,476 +2,248 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <meta name="theme-color" content="#0b0b0f" />
-  <meta name="description" content="FlexusHub — Script host seguro · FlexusHub." />
-  <title>FlexusHub · Script Host</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="FlexusHub — Loader protegido. Solo ejecutores." />
+  <meta name="theme-color" content="#050507" />
+  <title>FlexusHub · Protected Loader</title>
   <style>
     :root {
-      --bg: #08080a;
-      --deep: #050506;
-      --card: rgba(22, 22, 26, 0.92);
-      --line: rgba(255, 255, 255, 0.08);
-      --text: #f5f5f7;
+      --bg: #050507;
+      --card: rgba(16, 16, 20, 0.78);
+      --line: rgba(255, 255, 255, 0.12);
+      --line-strong: rgba(255, 255, 255, 0.28);
+      --text: #f4f4f7;
       --muted: #9a9aa3;
-      --gold: #ffc43a;
-      --gold2: #e6a817;
-      --gold-dim: rgba(255, 196, 58, 0.14);
-      --ok: #8ed9a6;
-      --shadow: 0 28px 80px rgba(0, 0, 0, 0.5);
+      --neon: #ffffff;
+      --neon-dim: rgba(255, 255, 255, 0.55);
+      --radius: 16px;
+      --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+      --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
+    html, body { min-height: 100%; }
     body {
-      background-image: linear-gradient(rgba(0,0,0,0.62), rgba(0,0,0,0.78)), url("/bg.jpg");
+      font-family: var(--font);
+      color: var(--text);
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(180deg, rgba(5, 5, 7, 0.72) 0%, rgba(5, 5, 7, 0.88) 55%, rgba(5, 5, 7, 0.95) 100%),
+        url("/bg.jpg");
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
-      min-height: 100vh;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255, 196, 58, 0.12), transparent),
-        radial-gradient(circle at 90% 80%, rgba(230, 168, 23, 0.05), transparent 40%),
-        linear-gradient(180deg, var(--bg), var(--deep));
+      line-height: 1.5;
       -webkit-font-smoothing: antialiased;
     }
-
+    a { color: inherit; text-decoration: none; }
     .wrap {
-      width: min(640px, calc(100% - 32px));
+      width: min(920px, calc(100% - 32px));
       margin: 0 auto;
-      padding: 48px 0 64px;
+      padding: 28px 0 48px;
     }
-
     header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 40px;
+      gap: 16px;
       flex-wrap: wrap;
+      margin-bottom: 36px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(10, 10, 14, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.03), 0 12px 40px rgba(0,0,0,0.35);
     }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
+    .brand { display: flex; align-items: center; gap: 14px; }
     .logo {
-      width: 40px;
-      height: 40px;
-      display: grid;
-      place-items: center;
-      font-weight: 850;
-      font-size: 18px;
-      color: #111;
-      background: linear-gradient(145deg, #ffe08a, var(--gold2));
-      border-radius: 12px;
-      box-shadow: 0 1px 0 #fff inset, 0 8px 20px rgba(230, 168, 23, 0.25);
+      width: 52px; height: 52px; border-radius: 14px; overflow: hidden;
+      border: 1px solid var(--line-strong);
+      box-shadow: 0 0 24px rgba(255, 255, 255, 0.08);
+      background: #000; flex-shrink: 0;
     }
-
+    .logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .brand h1 {
-      font-size: 17px;
-      font-weight: 700;
-      letter-spacing: -0.03em;
+      font-size: 1.15rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--neon);
+      text-shadow: 0 0 18px rgba(255, 255, 255, 0.35);
     }
-
-    .brand span {
-      display: block;
-      font-size: 11px;
-      color: var(--muted);
-      font-weight: 600;
-      margin-top: 2px;
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
+    .brand span { display: block; font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .status {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 12px;
-      font-size: 12px;
-      font-weight: 650;
-      color: var(--muted);
-      background: rgba(28, 28, 32, 0.8);
-      border: 1px solid var(--line);
-      border-radius: 999px;
+      display: inline-flex; align-items: center; gap: 8px; font-size: 0.78rem;
+      color: var(--muted); padding: 8px 12px; border-radius: 999px;
+      border: 1px solid var(--line); background: rgba(0, 0, 0, 0.35);
     }
-
     .status i {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--ok);
-      box-shadow: 0 0 0 4px rgba(142, 217, 166, 0.12);
+      width: 8px; height: 8px; border-radius: 50%; background: #e8e8ee;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.85);
+      animation: pulse 2s ease-in-out infinite;
     }
-
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
     .btn-web {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 8px 14px;
-      font-size: 12px;
-      font-weight: 700;
-      text-decoration: none;
-      color: #111;
-      background: linear-gradient(180deg, #ffe08a, var(--gold2));
-      border-radius: 999px;
-      box-shadow: 0 1px 0 rgba(255,255,255,.45) inset, 0 6px 16px rgba(230, 168, 23, 0.22);
-      transition: filter .15s, transform .15s;
+      display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px;
+      border-radius: 999px; border: 1px solid var(--line-strong);
+      background: rgba(255, 255, 255, 0.04); color: var(--text);
+      font-size: 0.82rem; font-weight: 600;
+      transition: background 0.2s, box-shadow 0.2s, border-color 0.2s;
     }
-
-    .btn-web:hover { filter: brightness(1.06); }
-    .btn-web:active { transform: scale(0.97); }
-
+    .btn-web:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.45);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.12);
+    }
     .hero { margin-bottom: 28px; }
-
     .eyebrow {
-      font-size: 11px;
-      font-weight: 760;
-      letter-spacing: 0.16em;
-      color: var(--gold);
-      text-transform: uppercase;
-      margin-bottom: 12px;
+      display: inline-block; font-size: 0.72rem; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--neon-dim); border: 1px solid var(--line);
+      padding: 6px 10px; border-radius: 999px; margin-bottom: 14px;
+      background: rgba(0, 0, 0, 0.4);
     }
-
     .hero h2 {
-      font-size: clamp(32px, 8vw, 44px);
-      font-weight: 720;
-      letter-spacing: -0.05em;
-      line-height: 1.05;
-      margin-bottom: 14px;
+      font-size: clamp(1.55rem, 4vw, 2.15rem); font-weight: 700;
+      line-height: 1.2; margin-bottom: 12px; letter-spacing: -0.02em;
     }
-
     .hero h2 em {
-      font-style: normal;
-      color: var(--muted);
+      font-style: normal; color: var(--neon);
+      text-shadow: 0 0 22px rgba(255, 255, 255, 0.4);
     }
-
-    .hero p {
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.65;
-      max-width: 480px;
-    }
-
+    .hero p { max-width: 540px; color: var(--muted); font-size: 0.95rem; }
     .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      padding: 20px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(16px);
+      border: 1px solid var(--line); border-radius: var(--radius);
+      background: var(--card); backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px); padding: 18px; margin-bottom: 18px;
+      box-shadow: 0 16px 50px rgba(0, 0, 0, 0.4);
     }
-
     .card-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
-      padding: 0 4px;
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 12px; margin-bottom: 14px;
     }
-
-    .card-head strong { font-size: 13px; font-weight: 700; }
-    .card-head small {
-      display: block;
-      margin-top: 3px;
-      font-size: 11px;
-      color: var(--muted);
-      font-weight: 500;
-    }
-
+    .card-head strong { display: block; font-size: 0.95rem; }
+    .card-head small { color: var(--muted); font-size: 0.78rem; }
     .badge {
-      font-size: 10px;
-      font-weight: 750;
-      letter-spacing: 0.08em;
-      color: var(--gold);
-      background: var(--gold-dim);
-      border: 1px solid rgba(255, 196, 58, 0.25);
-      padding: 5px 9px;
-      border-radius: 999px;
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em;
+      padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line-strong);
+      color: var(--neon); background: rgba(255, 255, 255, 0.06);
+      box-shadow: 0 0 16px rgba(255, 255, 255, 0.08); white-space: nowrap;
     }
-
     .code-box {
-      display: flex;
-      align-items: stretch;
-      gap: 10px;
-      background: #09090b;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px 12px 12px 16px;
+      display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap;
+      background: #08080c; border: 1px solid var(--line); border-radius: 12px; padding: 12px;
     }
-
     .code-box code {
-      flex: 1;
-      min-width: 0;
-      font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
-      color: #d8dce3;
-      word-break: break-all;
-      user-select: all;
-      padding: 6px 0;
+      flex: 1 1 220px; font-family: var(--mono); font-size: 0.78rem;
+      color: #d8d8e0; word-break: break-all; padding: 8px 4px; line-height: 1.45;
     }
-
     .btn {
-      flex-shrink: 0;
-      border: 0;
-      cursor: pointer;
-      font: 650 12px/1 system-ui, sans-serif;
-      padding: 0 14px;
-      border-radius: 10px;
-      color: #111;
-      background: linear-gradient(180deg, #ffe08a, var(--gold2));
-      box-shadow: 0 1px 0 rgba(255,255,255,.5) inset, 0 6px 16px rgba(230, 168, 23, 0.25);
-      transition: transform .15s, filter .15s;
+      border: 1px solid var(--line-strong);
+      background: linear-gradient(180deg, #f5f5f8, #c8c8d0);
+      color: #0a0a0c; font-weight: 700; font-size: 0.82rem;
+      padding: 10px 16px; border-radius: 10px; cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, filter 0.15s; white-space: nowrap;
     }
-
-    .btn:hover { filter: brightness(1.06); }
-    .btn:active { transform: scale(0.97); }
-
+    .btn:hover { filter: brightness(1.06); box-shadow: 0 0 24px rgba(255, 255, 255, 0.25); }
+    .btn:active { transform: scale(0.98); }
     .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-top: 16px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px;
     }
-
+    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
     .stat {
-      background: rgba(18, 18, 22, 0.9);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 18px 16px;
-      min-height: 110px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
+      border: 1px solid var(--line); border-radius: 14px; padding: 16px;
+      background: rgba(12, 12, 16, 0.72); backdrop-filter: blur(10px);
     }
-
     .stat .k {
-      font-size: 10px;
-      font-weight: 720;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: auto;
+      display: block; font-size: 0.72rem; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
     }
-
     .stat .v {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      margin-top: 10px;
+      display: block; font-size: 1.15rem; font-weight: 700; color: var(--neon);
+      text-shadow: 0 0 14px rgba(255, 255, 255, 0.25); margin-bottom: 4px;
     }
-
-    .stat .d {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 4px;
+    .stat .d { font-size: 0.8rem; color: var(--muted); }
+    .protect-list { list-style: none; display: grid; gap: 10px; }
+    .protect-list li {
+      display: flex; gap: 12px; align-items: flex-start; padding: 12px;
+      border-radius: 12px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.28);
     }
-
-    .hint {
-      margin-top: 20px;
-      padding: 14px 16px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: rgba(255, 196, 58, 0.05);
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.55;
+    .protect-list .dot {
+      width: 10px; height: 10px; margin-top: 5px; border-radius: 50%;
+      background: #fff; box-shadow: 0 0 12px rgba(255, 255, 255, 0.7); flex-shrink: 0;
     }
-
-    .hint strong { color: var(--text); font-weight: 650; }
-
+    .protect-list strong { display: block; font-size: 0.9rem; margin-bottom: 2px; }
+    .protect-list span { font-size: 0.8rem; color: var(--muted); }
     .web-card {
-      margin-top: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      flex-wrap: wrap;
-      padding: 16px 18px;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      background: rgba(22, 22, 26, 0.85);
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      flex-wrap: wrap; padding: 18px; border-radius: var(--radius);
+      border: 1px solid var(--line-strong);
+      background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(0,0,0,0.35)), rgba(14, 14, 18, 0.8);
+      margin-bottom: 16px;
     }
-
-    .web-card p {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-
-    .web-card p strong {
-      display: block;
-      color: var(--text);
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-
+    .web-card strong { display: block; margin-bottom: 4px; }
+    .web-card p { color: var(--muted); font-size: 0.88rem; }
     .btn-web-lg {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      min-height: 44px;
-      padding: 0 18px;
-      font-size: 13px;
-      font-weight: 720;
-      text-decoration: none;
-      color: #111;
-      background: linear-gradient(180deg, #ffe08a, var(--gold2));
-      border-radius: 12px;
-      box-shadow: 0 1px 0 rgba(255,255,255,.5) inset, 0 8px 20px rgba(230, 168, 23, 0.25);
-      white-space: nowrap;
+      display: inline-flex; align-items: center; padding: 12px 18px; border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.45); background: rgba(255, 255, 255, 0.92);
+      color: #0a0a0c; font-weight: 700; font-size: 0.88rem;
+      box-shadow: 0 0 28px rgba(255, 255, 255, 0.18);
     }
-
+    .btn-web-lg:hover { filter: brightness(1.05); }
+    .hint {
+      font-size: 0.82rem; color: var(--muted); padding: 14px 16px;
+      border-left: 2px solid rgba(255, 255, 255, 0.35); background: rgba(0, 0, 0, 0.35);
+      border-radius: 0 12px 12px 0; margin-bottom: 28px;
+    }
+    .hint code {
+      font-family: var(--mono); font-size: 0.78rem; color: #e8e8ee;
+      background: rgba(255, 255, 255, 0.06); padding: 1px 6px; border-radius: 4px;
+    }
     footer {
-      margin-top: 36px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      color: var(--muted);
-      font-size: 12px;
-      border-top: 1px solid var(--line);
-      padding-top: 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 10px; padding-top: 8px; border-top: 1px solid var(--line);
+      color: var(--muted); font-size: 0.78rem;
     }
-
-    footer a {
-      color: var(--gold);
-      text-decoration: none;
-      font-weight: 600;
-    }
-
+    footer a:hover { color: var(--neon); text-shadow: 0 0 10px rgba(255, 255, 255, 0.35); }
     .toast {
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      padding: 12px 16px;
-      border-radius: 12px;
-      background: linear-gradient(#2c2c30, #1c1c20);
-      border: 1px solid #3a3a42;
-      font-size: 13px;
-      font-weight: 620;
-      box-shadow: 0 16px 40px rgba(0,0,0,.45);
-      opacity: 0;
-      transform: translateY(8px);
-      pointer-events: none;
-      transition: .22s ease;
-      z-index: 50;
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+      opacity: 0; pointer-events: none; padding: 12px 18px; border-radius: 12px;
+      background: rgba(18, 18, 22, 0.95); border: 1px solid var(--line-strong);
+      color: var(--text); font-size: 0.85rem; font-weight: 600;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5); transition: opacity 0.25s, transform 0.25s; z-index: 50;
     }
-
-    .toast.show {
-      opacity: 1;
-      transform: none;
-    }
-
-    @media (max-width: 560px) {
-      .grid { grid-template-columns: 1fr; }
-      .code-box { flex-direction: column; }
-      .btn { min-height: 42px; }
-      .web-card { flex-direction: column; align-items: stretch; }
-      .btn-web-lg { width: 100%; }
-    }
-  
-    
-    }
-
-    /* Music */
-    .music-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,0,0,0.72);
-      backdrop-filter: blur(8px);
-    }
-    .music-overlay.hidden { display: none; }
-    .music-card {
-      width: min(340px, calc(100% - 40px));
-      padding: 28px 24px;
-      border-radius: 20px;
-      background: #141418;
-      border: 1px solid rgba(255,196,58,0.35);
-      text-align: center;
-      box-shadow: 0 24px 80px rgba(0,0,0,0.55);
-    }
-    .music-card h2 {
-      font-size: 18px;
-      margin-bottom: 8px;
-      color: #ffc43a;
-    }
-    .music-card p {
-      font-size: 13px;
-      color: #9a9aa3;
-      margin-bottom: 18px;
-      line-height: 1.45;
-    }
-    .music-card button {
-      width: 100%;
-      border: 0;
-      border-radius: 12px;
-      padding: 14px 16px;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      color: #111;
-      background: linear-gradient(145deg, #ffe08a, #e6a817);
-    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     .music-fab {
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      z-index: 50;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 196, 58, 0.35);
-      background: rgba(18, 18, 22, 0.95);
-      color: #ffc43a;
-      font-size: 13px;
-      font-weight: 650;
-      cursor: pointer;
+      position: fixed; right: 18px; bottom: 18px; width: 46px; height: 46px;
+      border-radius: 50%; border: 1px solid var(--line-strong);
+      background: rgba(12, 12, 16, 0.9); color: var(--text); cursor: pointer; font-size: 1rem;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45); z-index: 40;
     }
-    .music-fab.off { opacity: 0.85; }
-
+    .music-fab.off { opacity: 0.55; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
       <div class="brand">
-        <div class="logo"><img src="/logo.png" alt="FlexusHub" style="width:100%;height:100%;object-fit:contain;border-radius:12px;" /></div>
+        <div class="logo"><img src="/logo.png" alt="FlexusHub" /></div>
         <div>
           <h1>FlexusHub</h1>
-          <span>Script Host · Vercel</span>
+          <span>Protected Host · Loader</span>
         </div>
       </div>
       <div class="header-actions">
-        <div class="status"><i></i> Servicios en línea</div>
-        <a class="btn-web" href="https://flexushub-scripts.netlify.app/" target="_blank" rel="noreferrer">Ir a la web ↗</a>
+        <div class="status"><i></i> Online</div>
+        <a class="btn-web" href="https://flexushub-scripts.netlify.app/" target="_blank" rel="noreferrer">Web oficial ↗</a>
+        <a class="btn-web" href="https://discord.gg/Fn74MpzFUn" target="_blank" rel="noreferrer">Discord</a>
       </div>
     </header>
 
     <section class="hero">
-      <p class="eyebrow">Loader protegido</p>
-      <h2>Ejecuta con un <em>solo</em> loadstring.</h2>
+      <p class="eyebrow">Solo ejecutores</p>
+      <h2>Loader protegido. <em>Un loadstring.</em></h2>
       <p>
-        Copia el loader y pégalo en tu executor. El script real no se sirve al navegador;
-        solo responde a peticiones del executor.
+        Copia el loader y pégalo en Delta, Hydrogen, Codex u otro executor.
+        El código real no se entrega al navegador.
       </p>
     </section>
 
@@ -479,9 +251,9 @@
       <div class="card-head">
         <div>
           <strong>flexus_loader.lua</strong>
-          <small>Loader principal · Solo lectura</small>
+          <small>Endpoint /api/loader · sesión + chunks</small>
         </div>
-        <span class="badge">LISTO</span>
+        <span class="badge">READY</span>
       </div>
       <div class="code-box">
         <code id="loaderCode">loadstring(game:HttpGet("…"))()</code>
@@ -498,169 +270,146 @@
       <article class="stat">
         <span class="k">Protección</span>
         <span class="v">Anti-browser</span>
-        <span class="d">Token + User-Agent</span>
+        <span class="d">Headers · ticket · UA</span>
       </article>
       <article class="stat">
         <span class="k">Host</span>
         <span class="v">Vercel</span>
-        <span class="d">Edge / serverless</span>
+        <span class="d">API serverless</span>
       </article>
     </div>
 
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <strong>Capas de protección</strong>
+          <small>Qué bloquea este host</small>
+        </div>
+      </div>
+      <ul class="protect-list">
+        <li>
+          <span class="dot"></span>
+          <div>
+            <strong>Bloqueo de navegador</strong>
+            <span>Chrome, Firefox y herramientas de scrape no reciben el script.</span>
+          </div>
+        </li>
+        <li>
+          <span class="dot"></span>
+          <div>
+            <strong>Sesión + ticket</strong>
+            <span>El loader pide token de un solo uso antes de los chunks.</span>
+          </div>
+        </li>
+        <li>
+          <span class="dot"></span>
+          <div>
+            <strong>Headers de executor</strong>
+            <span>Solo peticiones con firma FlexusExecutor / X-Flexus-Client.</span>
+          </div>
+        </li>
+        <li>
+          <span class="dot"></span>
+          <div>
+            <strong>Script fuera del public</strong>
+            <span>El Lua vive en private/ — no es estático descargable.</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+
     <div class="web-card">
-      <p>
+      <div>
         <strong>Sitio oficial FlexusHub</strong>
-        Scripts, novedades y comunidad.
-      </p>
-      <a class="btn-web-lg" href="https://flexushub-scripts.netlify.app/" target="_blank" rel="noreferrer">
-        Regresar a la web ↗
-      </a>
+        <p>Scripts, novedades y comunidad.</p>
+      </div>
+      <a class="btn-web-lg" href="https://flexushub-scripts.netlify.app/" target="_blank" rel="noreferrer">Ir a la web ↗</a>
     </div>
 
     <p class="hint">
-      <strong>Importante:</strong> no abras <code>/api/script</code> en Chrome.
-      Usa solo el loader de arriba en Delta, Hydrogen, Codex u otro executor.
+      <strong>Importante:</strong> no abras <code>/api/script</code>, <code>/api/chunk</code> ni <code>/api/unwrap</code> en el navegador.
+      Usa solo el loader de arriba en un executor de Roblox.
     </p>
 
     <footer>
-      <span>FlexusHub © 2026</span>
+      <span>FlexusHub © 2026 · Protected</span>
       <a href="https://flexushub-scripts.netlify.app/" target="_blank" rel="noreferrer">flexushub-scripts.netlify.app</a>
     </footer>
   </div>
 
-  <div class="toast" id="toast">Loader copiado</div>
+  <div class="toast" id="toast" role="status"></div>
+  <button class="music-fab off" type="button" id="musicBtn" title="Música">♪</button>
+  <audio id="fxAudio" loop playsinline preload="auto"></audio>
 
   <script>
     (function () {
-      const host = location.origin;
-      const line = 'loadstring(game:HttpGet("' + host + '/api/loader"))()';
-      const code = document.getElementById("loaderCode");
-      const btn = document.getElementById("copyBtn");
-      const toast = document.getElementById("toast");
-      code.textContent = line;
+      var origin = window.location.origin;
+      var loaderLine = 'loadstring(game:HttpGet("' + origin + '/api/loader"))()';
+      var codeEl = document.getElementById("loaderCode");
+      if (codeEl) codeEl.textContent = loaderLine;
 
       function showToast(msg) {
-        toast.textContent = msg;
-        toast.classList.add("show");
-        clearTimeout(showToast._t);
-        showToast._t = setTimeout(function () {
-          toast.classList.remove("show");
-        }, 2200);
+        var t = document.getElementById("toast");
+        if (!t) return;
+        t.textContent = msg;
+        t.classList.add("show");
+        clearTimeout(showToast._timer);
+        showToast._timer = setTimeout(function () { t.classList.remove("show"); }, 2200);
       }
 
-      btn.addEventListener("click", async function () {
-        try {
-          await navigator.clipboard.writeText(line);
-          showToast("Loader copiado al portapapeles");
-        } catch (e) {
-          const range = document.createRange();
-          range.selectNodeContents(code);
-          const sel = window.getSelection();
-          sel.removeAllRanges();
-          sel.addRange(range);
-          showToast("Seleccionado — copia manualmente");
-        }
-      });
-
-      
-      
-      // --- Music: same-origin /intro.mp3 + fallback remoto ---
-      const LOCAL_AUDIO = "/intro.mp3";
-      const REMOTE_AUDIO = "https://www.image2url.com/r2/default/audio/1789249131827-a7aff83d-4a2d-4f1a-8f8d-d891a48b7f81.mp3";
-      const audio = document.getElementById("fxAudio");
-      const musicBtn = document.getElementById("musicBtn");
-      const musicLabel = document.getElementById("musicLabel");
-      const overlay = document.getElementById("musicOverlay");
-      const startBtn = document.getElementById("musicStartBtn");
-      let musicOn = false;
-
-      function setUI(on) {
-        musicOn = on;
-        if (musicBtn) musicBtn.classList.toggle("off", !on);
-        if (musicLabel) musicLabel.textContent = on ? "Sonando ♪" : "Música";
-        if (on && overlay) overlay.classList.add("hidden");
+      var copyBtn = document.getElementById("copyBtn");
+      if (copyBtn) {
+        copyBtn.addEventListener("click", function () {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(loaderLine).then(function () {
+              showToast("Loader copiado");
+            }).catch(function () { fallbackCopy(loaderLine); });
+          } else {
+            fallbackCopy(loaderLine);
+          }
+        });
       }
 
-      function pickSource() {
-        // Prefer local file hosted with the site (same origin = more reliable)
-        return LOCAL_AUDIO;
+      function fallbackCopy(text) {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); showToast("Loader copiado"); }
+        catch (e) { showToast("No se pudo copiar"); }
+        document.body.removeChild(ta);
       }
+
+      var musicOn = false;
+      var REMOTE_AUDIO = "https://www.image2url.com/r2/default/audio/1789249131827-a7aff83d-4a2d-4f1a-8f8d-d891a48b7f81.mp3";
+      var audio = document.getElementById("fxAudio");
+      var musicBtn = document.getElementById("musicBtn");
 
       async function playMusic() {
-        if (!audio) return false;
+        if (!audio) return;
         try {
-          audio.pause();
-          audio.src = pickSource();
+          audio.src = REMOTE_AUDIO;
           audio.loop = true;
-          audio.muted = false;
-          audio.volume = 0.8;
+          audio.volume = 0.75;
           audio.load();
-          await new Promise(function (resolve, reject) {
-            var done = false;
-            function ok() { if (done) return; done = true; resolve(); }
-            function bad(e) { if (done) return; done = true; reject(e || new Error("load error")); }
-            audio.addEventListener("canplay", ok, { once: true });
-            audio.addEventListener("error", bad, { once: true });
-            setTimeout(function () { ok(); }, 4000); // no bloquear forever
-          });
           await audio.play();
-          setUI(true);
-          return true;
-        } catch (e1) {
-          console.warn("local audio fail", e1);
-          // fallback remoto
-          try {
-            audio.src = REMOTE_AUDIO;
-            audio.load();
-            await audio.play();
-            setUI(true);
-            return true;
-          } catch (e2) {
-            console.warn("remote audio fail", e2);
-            setUI(false);
-            if (typeof showToast === "function") showToast("No se pudo reproducir el audio");
-            return false;
-          }
+          musicOn = true;
+          if (musicBtn) musicBtn.classList.remove("off");
+        } catch (e) {
+          showToast("Audio bloqueado por el navegador");
         }
       }
-
-      async function toggle() {
-        if (musicOn && audio && !audio.paused) {
-          audio.pause();
-          setUI(false);
-          return;
-        }
-        await playMusic();
+      function stopMusic() {
+        if (audio) audio.pause();
+        musicOn = false;
+        if (musicBtn) musicBtn.classList.add("off");
       }
-
-      if (startBtn) startBtn.addEventListener("click", function (e) {
-        e.preventDefault();
-        playMusic();
-      });
-      if (musicBtn) musicBtn.addEventListener("click", function (e) {
-        e.preventDefault();
-        toggle();
-      });
-
+      if (musicBtn) {
+        musicBtn.addEventListener("click", function () {
+          if (musicOn) stopMusic(); else playMusic();
+        });
+      }
     })();
   </script>
-<button type="button" class="music-fab off" id="musicBtn" title="Música">
-    <span class="dot"></span>
-    <span id="musicLabel">Toca para oír ♪</span>
-  </button>
-
-
-  <div class="music-overlay" id="musicOverlay">
-    <div class="music-card">
-      <h2>FlexusHub</h2>
-      <p>Los navegadores bloquean el autoplay.<br/>Toca el botón para activar la música.</p>
-      <button type="button" id="musicStartBtn">▶  Reproducir música</button>
-    </div>
-  </div>
-  <audio id="fxAudio" loop playsinline preload="auto"></audio>
-  <button type="button" class="music-fab off" id="musicBtn" title="Música">
-    <span id="musicLabel">Música</span>
-  </button>
-
 </body>
 </html>
