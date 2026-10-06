@@ -133,8 +133,6 @@ local function prepareScript(fileName)
 	preparedFn = nil
 	preparedSrc = nil
 
-	print("[FlexusHub] Preparando:", fileName)
-	print("[FlexusHub] URL:", fullUrl(fileName))
 
 	local src = httpGet(BASE_URL .. fileName)
 	if not src then
@@ -157,7 +155,6 @@ local function prepareScript(fileName)
 
 	preparedSrc = src
 	preparedFn = fn
-	print("[FlexusHub] Listo para ejecutar:", fileName, "(" .. tostring(#src) .. " bytes)")
 	return true
 end
 
@@ -166,11 +163,9 @@ local function runPrepared()
 		return false, "No hay script preparado. Elige uno en la lista."
 	end
 	local file = selectedFile
-	print("[FlexusHub] EJECUTANDO:", file)
-	print("[FlexusHub] URL final:", fullUrl(file))
+
 	local ok, err = pcall(preparedFn)
 	if ok then
-		print("[FlexusHub] OK ejecutado:", file)
 		return true
 	end
 	warn("[FlexusHub] Error runtime en", file, ":", err)
@@ -706,8 +701,6 @@ local function hideAllAndRun()
 	execBtn.Text = "CARGANDO..."
 	execBtn.Active = false
 
-	print("[FlexusHub] CONFIRMAR ejecutar solo:", fileNow)
-	print("[FlexusHub] URL final:", fullUrl(fileNow))
 
 	-- Cerrar menu YA (antes de ejecutar) para que no tape la pantalla
 	-- aunque el script tarde o se cuelgue
@@ -727,7 +720,6 @@ local function hideAllAndRun()
 			end
 			local ok, err = pcall(fn)
 			if ok then
-				print("[FlexusHub] OK ejecutado:", fileNow)
 			else
 				warn("[FlexusHub] Error runtime en", fileNow, ":", err)
 			end
@@ -764,5 +756,3 @@ pcall(function()
 		end
 	end)
 end)
-
-print("[FlexusHub] loader listo | elige script manualmente (sin auto Universal)")
