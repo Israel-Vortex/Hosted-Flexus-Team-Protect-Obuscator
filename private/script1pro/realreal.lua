@@ -1,7 +1,6 @@
 --[[
   FlexusHub · Loader
-  Intro → Menu → Seleccionas script → precarga → EJECUTAR confirma
-  Solo ejecuta el archivo elegido (Duels.lua, MM2.lua, etc.)
+  Intro → Menu de scripts → Ejecutar
 ]]
 
 if not game:IsLoaded() then
@@ -64,18 +63,30 @@ local INTRO_FILE = "flexushub_intro_cache.mp3"
 local LOGO_ID = "rbxassetid://78482030075403"
 local BG_ID = "rbxassetid://83511264088514"
 
--- URL base (se completa con el .lua elegido)
-local BASE_URL =
-	"https://raw.githubusercontent.com/Israel-Vortex/FlexusHub-Team/refs/heads/main/Scripts-Flexus/Top-one/"
-local BASE_URL_MIRROR =
-	"https://cdn.jsdelivr.net/gh/Israel-Vortex/FlexusHub-Team@main/Scripts-Flexus/Top-one/"
+local BASE_URLS = {
+	"https://raw.githubusercontent.com/Israel-Vortex/FlexusHub-Team/refs/heads/main/Scripts-Flexus/Top-one/",
+	"https://cdn.jsdelivr.net/gh/Israel-Vortex/FlexusHub-Team@main/Scripts-Flexus/Top-one/",
+}
 
+-- Lista de scripts disponibles en el menu
 local SCRIPT_OPTIONS = {
 	{ Name = "Duels", File = "Duels.lua", Desc = "Asesinos VS Sheriffs" },
 	{ Name = "MM2", File = "MM2.lua", Desc = "Murder Mystery 2" },
 	{ Name = "Steal an Egg", File = "StealAnEgg.lua", Desc = "Steal an Egg" },
 	{ Name = "Survival Disaster", File = "SurvDisaster.lua", Desc = "Natural Disaster" },
 	{ Name = "Universal", File = "Universal.lua", Desc = "Cualquier juego" },
+}
+
+local gamesByPlaceId = {
+	[135856908115931] = "Duels.lua",
+	[74084441161738] = "Duels.lua",
+	[142823291] = "MM2.lua",
+	[107778070777162] = "StealAnEgg.lua",
+	[189707] = "SurvDisaster.lua",
+}
+
+local gamesByUniverseId = {
+	[7219654364] = "Duels.lua",
 }
 
 local ACCENT = Color3.fromRGB(245, 245, 250)
@@ -85,12 +96,41 @@ local PANEL = Color3.fromRGB(14, 14, 18)
 local PANEL2 = Color3.fromRGB(22, 22, 28)
 local BORDER = Color3.fromRGB(200, 200, 210)
 
-local function tween(obj, t, props)
-	local tw = TweenService:Create(
-		obj,
-		TweenInfo.new(t, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-		props
-	)
+local function detectSuggestedFile()
+	local placeId = tonumber(game.PlaceId) or 0
+	local gameId = tonumber(game.GameId) or 0
+	local name = string.lower(tostring(game.Name or ""))
+
+	if gamesByPlaceId[placeId] then
+		return gamesByPlaceId[placeId]
+	end
+	if gameId ~= 0 and gamesByUniverseId[gameId] then
+		return gamesByUniverseId[gameId]
+	end
+	if string.find(name, "murder", 1, true) and string.find(name, "mystery", 1, true) then
+		return "MM2.lua"
+	end
+	if
+		string.find(name, "duel", 1, true)
+		or string.find(name, "asesin", 1, true)
+		or string.find(name, "sheriff", 1, true)
+		or string.find(name, "murderer", 1, true)
+	then
+		return "Duels.lua"
+	end
+	if string.find(name, "steal", 1, true) and string.find(name, "egg", 1, true) then
+		return "StealAnEgg.lua"
+	end
+	if string.find(name, "disaster", 1, true) or string.find(name, "natural", 1, true) then
+		return "SurvDisaster.lua"
+	end
+	return "Universal.lua"
+end
+
+local function tween(obj, t, props, style, dir)
+	style = style or Enum.EasingStyle.Quint
+	dir = dir or Enum.EasingDirection.Out
+	local tw = TweenService:Create(obj, TweenInfo.new(t, style, dir), props)
 	tw:Play()
 	return tw
 end
@@ -113,63 +153,45 @@ local function httpGet(url)
 	return nil
 end
 
+local function loadScriptFile(scriptFile)
+	local lastErr = "sin intento"
+	for _, base in ipairs(BASE_URLS) do
+		local url = base .. scriptFile
+		print("[FlexusHub] HttpGet:", url)
+		local src = httpGet(url)
+		if not src then
+			lastErr = "HttpGet fallo: " .. url
+			warn("[FlexusHub]", lastErr)
+		else
+			local fn, err = safeLoadstring(src)
+			if not fn then
+				lastErr = "loadstring: " .. tostring(err)
+				warn("[FlexusHub]", lastErr)
+			else
+				local okRun, runErr = pcall(fn)
+				if okRun then
+					print("[FlexusHub] OK ->", scriptFile)
+					return true
+				end
+				lastErr = "runtime: " .. tostring(runErr)
+				warn("[FlexusHub] Error ejecutando", scriptFile, ":", runErr)
+			end
+		end
+	end
+	return false, lastErr
+end
+
 -- ================= STATE =================
 local introSound = nil
 local finishedIntro = false
-local selectedFile = nil -- nil hasta que el usuario elija
-local selectedName = "Ninguno"
-local preparedFn = nil -- loadstring ya listo
-local preparedSrc = nil
-local prepareToken = 0 -- evita race si cambian opcion rapido
+local selectedFile = detectSuggestedFile()
+local selectedName = "Universal"
 
-local function fullUrl(fileName)
-	return BASE_URL .. tostring(fileName)
-end
-
--- Precarga: descarga + loadstring del archivo elegido (NO ejecuta)
-local function prepareScript(fileName)
-	prepareToken = prepareToken + 1
-	local myToken = prepareToken
-	preparedFn = nil
-	preparedSrc = nil
-
-
-	local src = httpGet(BASE_URL .. fileName)
-	if not src then
-		src = httpGet(BASE_URL_MIRROR .. fileName)
+for _, opt in ipairs(SCRIPT_OPTIONS) do
+	if opt.File == selectedFile then
+		selectedName = opt.Name
+		break
 	end
-	if myToken ~= prepareToken then
-		return false, "cancelado"
-	end
-	if not src then
-		return false, "HttpGet fallo"
-	end
-
-	local fn, err = safeLoadstring(src)
-	if myToken ~= prepareToken then
-		return false, "cancelado"
-	end
-	if not fn then
-		return false, "loadstring: " .. tostring(err)
-	end
-
-	preparedSrc = src
-	preparedFn = fn
-	return true
-end
-
-local function runPrepared()
-	if not preparedFn then
-		return false, "No hay script preparado. Elige uno en la lista."
-	end
-	local file = selectedFile
-
-	local ok, err = pcall(preparedFn)
-	if ok then
-		return true
-	end
-	warn("[FlexusHub] Error runtime en", file, ":", err)
-	return false, tostring(err)
 end
 
 local function loadIntroAudio(url)
@@ -222,6 +244,7 @@ parentHidden(gui)
 
 -- ========== INTRO ==========
 local introCover = Instance.new("Frame")
+introCover.Name = "Intro"
 introCover.Size = UDim2.fromScale(1, 1)
 introCover.BackgroundColor3 = Color3.fromRGB(4, 4, 6)
 introCover.BorderSizePixel = 0
@@ -331,8 +354,9 @@ task.spawn(function()
 	loadIntroAudio(INTRO_AUDIO_URL)
 end)
 
--- ========== MENU ==========
+-- ========== MENU (oculto al inicio) ==========
 local menuCover = Instance.new("Frame")
+menuCover.Name = "Menu"
 menuCover.Size = UDim2.fromScale(1, 1)
 menuCover.BackgroundColor3 = Color3.fromRGB(6, 6, 8)
 menuCover.BackgroundTransparency = 1
@@ -355,6 +379,7 @@ menuDim.BackgroundTransparency = 0.35
 menuDim.BorderSizePixel = 0
 menuDim.Parent = menuCover
 
+-- Panel principal centrado
 local panel = Instance.new("Frame")
 panel.Size = UDim2.fromOffset(520, 340)
 panel.Position = UDim2.fromScale(0.5, 0.5)
@@ -370,6 +395,7 @@ panelStroke.Thickness = 2
 panelStroke.Transparency = 0.25
 panelStroke.Parent = panel
 
+-- Header
 local header = Instance.new("Frame")
 header.Size = UDim2.new(1, 0, 0, 64)
 header.BackgroundColor3 = PANEL2
@@ -377,6 +403,7 @@ header.BackgroundTransparency = 0.15
 header.BorderSizePixel = 0
 header.Parent = panel
 Instance.new("UICorner", header).CornerRadius = UDim.new(0, 16)
+-- fix bottom corners of header look
 local headerMask = Instance.new("Frame")
 headerMask.Size = UDim2.new(1, 0, 0, 20)
 headerMask.Position = UDim2.new(0, 0, 1, -20)
@@ -413,9 +440,10 @@ headerSub.Font = Enum.Font.Gotham
 headerSub.TextSize = 12
 headerSub.TextColor3 = ACCENT_DIM
 headerSub.TextXAlignment = Enum.TextXAlignment.Left
-headerSub.Text = "Elige el script y luego EJECUTAR"
+headerSub.Text = "Selecciona un script y ejecuta"
 headerSub.Parent = header
 
+-- Sidebar lista de scripts
 local side = Instance.new("Frame")
 side.Size = UDim2.new(0, 180, 1, -80)
 side.Position = UDim2.new(0, 12, 0, 72)
@@ -464,6 +492,7 @@ pad.PaddingLeft = UDim.new(0, 2)
 pad.PaddingRight = UDim.new(0, 2)
 pad.Parent = list
 
+-- Centro (info + boton ejecutar)
 local mid = Instance.new("Frame")
 mid.Size = UDim2.new(1, -210, 1, -80)
 mid.Position = UDim2.new(0, 200, 0, 72)
@@ -500,7 +529,7 @@ midName.BackgroundTransparency = 1
 midName.Font = Enum.Font.GothamBold
 midName.TextSize = 22
 midName.TextColor3 = ACCENT
-midName.Text = "Ninguno"
+midName.Text = selectedName
 midName.Parent = midCard
 
 local midDesc = Instance.new("TextLabel")
@@ -511,7 +540,7 @@ midDesc.Font = Enum.Font.Gotham
 midDesc.TextSize = 13
 midDesc.TextColor3 = ACCENT_DIM
 midDesc.TextWrapped = true
-midDesc.Text = "Toca un script a la izquierda.\nSe preparara el loadstring."
+midDesc.Text = "Script detectado para este juego.\nPuedes cambiarlo en la lista."
 midDesc.Parent = midCard
 
 local midFile = Instance.new("TextLabel")
@@ -521,59 +550,44 @@ midFile.BackgroundTransparency = 1
 midFile.Font = Enum.Font.GothamMedium
 midFile.TextSize = 11
 midFile.TextColor3 = GOLD
-midFile.Text = "(sin seleccionar)"
+midFile.Text = selectedFile
 midFile.Parent = midCard
-
-local statusLbl = Instance.new("TextLabel")
-statusLbl.Size = UDim2.new(1, -24, 0, 18)
-statusLbl.Position = UDim2.new(0, 12, 1, -78)
-statusLbl.BackgroundTransparency = 1
-statusLbl.Font = Enum.Font.Gotham
-statusLbl.TextSize = 11
-statusLbl.TextColor3 = ACCENT_DIM
-statusLbl.Text = "Selecciona un script"
-statusLbl.Parent = midCard
 
 local execBtn = Instance.new("TextButton")
 execBtn.Size = UDim2.fromOffset(200, 46)
 execBtn.Position = UDim2.new(0.5, 0, 1, -28)
 execBtn.AnchorPoint = Vector2.new(0.5, 1)
-execBtn.BackgroundColor3 = Color3.fromRGB(90, 90, 96)
+execBtn.BackgroundColor3 = Color3.fromRGB(235, 235, 240)
 execBtn.BorderSizePixel = 0
 execBtn.Text = "EJECUTAR SCRIPT"
 execBtn.Font = Enum.Font.GothamBold
 execBtn.TextSize = 15
-execBtn.TextColor3 = Color3.fromRGB(200, 200, 205)
+execBtn.TextColor3 = Color3.fromRGB(12, 12, 14)
 execBtn.AutoButtonColor = true
-execBtn.Active = false
 execBtn.Parent = midCard
 Instance.new("UICorner", execBtn).CornerRadius = UDim.new(0, 12)
 local execStroke = Instance.new("UIStroke")
 execStroke.Color = BORDER
 execStroke.Thickness = 1.5
-execStroke.Transparency = 0.5
+execStroke.Transparency = 0.35
 execStroke.Parent = execBtn
 
-local optionButtons = {}
+local statusLbl = Instance.new("TextLabel")
+statusLbl.Size = UDim2.new(1, -24, 0, 16)
+statusLbl.Position = UDim2.new(0, 12, 1, -78)
+statusLbl.BackgroundTransparency = 1
+statusLbl.Font = Enum.Font.Gotham
+statusLbl.TextSize = 11
+statusLbl.TextColor3 = ACCENT_DIM
+statusLbl.Text = ""
+statusLbl.Parent = midCard
 
-local function setExecReady(ready)
-	if ready then
-		execBtn.Active = true
-		execBtn.BackgroundColor3 = Color3.fromRGB(235, 235, 240)
-		execBtn.TextColor3 = Color3.fromRGB(12, 12, 14)
-		execStroke.Transparency = 0.35
-		execBtn.Text = "EJECUTAR SCRIPT"
-	else
-		execBtn.Active = false
-		execBtn.BackgroundColor3 = Color3.fromRGB(90, 90, 96)
-		execBtn.TextColor3 = Color3.fromRGB(200, 200, 205)
-		execStroke.Transparency = 0.5
-	end
-end
+-- Botones laterales
+local optionButtons = {}
 
 local function refreshSelectionUI()
 	midName.Text = selectedName
-	midFile.Text = selectedFile and selectedFile or "(sin seleccionar)"
+	midFile.Text = selectedFile
 	for file, btn in pairs(optionButtons) do
 		local active = (file == selectedFile)
 		btn.BackgroundColor3 = active and Color3.fromRGB(55, 55, 62) or Color3.fromRGB(18, 18, 24)
@@ -583,34 +597,6 @@ local function refreshSelectionUI()
 			stroke.Transparency = active and 0.15 or 0.55
 		end
 	end
-end
-
-local function onSelectOption(opt)
-	selectedFile = opt.File
-	selectedName = opt.Name
-	midDesc.Text = opt.Desc
-	refreshSelectionUI()
-	setExecReady(false)
-	statusLbl.Text = "Preparando " .. opt.File .. "..."
-	statusLbl.TextColor3 = GOLD
-
-	task.spawn(function()
-		local ok, err = prepareScript(opt.File)
-		-- solo actualizar si sigue siendo la misma seleccion
-		if selectedFile ~= opt.File then
-			return
-		end
-		if ok then
-			statusLbl.Text = "Listo: " .. opt.File
-			statusLbl.TextColor3 = Color3.fromRGB(120, 220, 140)
-			setExecReady(true)
-		else
-			statusLbl.Text = "Error: " .. tostring(err)
-			statusLbl.TextColor3 = Color3.fromRGB(255, 120, 120)
-			setExecReady(false)
-			preparedFn = nil
-		end
-	end)
 end
 
 for i, opt in ipairs(SCRIPT_OPTIONS) do
@@ -648,20 +634,30 @@ for i, opt in ipairs(SCRIPT_OPTIONS) do
 	d.TextSize = 10
 	d.TextColor3 = ACCENT_DIM
 	d.TextXAlignment = Enum.TextXAlignment.Left
-	d.Text = opt.File
+	d.Text = opt.Desc
 	d.Parent = btn
 
-	local function click()
-		onSelectOption(opt)
-	end
-	btn.MouseButton1Click:Connect(click)
+	btn.MouseButton1Click:Connect(function()
+		selectedFile = opt.File
+		selectedName = opt.Name
+		midDesc.Text = opt.Desc
+		refreshSelectionUI()
+	end)
 	pcall(function()
-		btn.Activated:Connect(click)
+		btn.Activated:Connect(function()
+			selectedFile = opt.File
+			selectedName = opt.Name
+			midDesc.Text = opt.Desc
+			refreshSelectionUI()
+		end)
 	end)
 
 	optionButtons[opt.File] = btn
 end
 
+refreshSelectionUI()
+
+-- ========== FLOW ==========
 local function showMenu()
 	stopAudio()
 	introCover.Visible = false
@@ -672,58 +668,43 @@ local function showMenu()
 	tween(panel, 0.4, { BackgroundTransparency = 0.05 })
 end
 
-local function closeLoaderUI()
-	stopAudio()
-	pcall(function()
-		menuCover.Visible = false
-		introCover.Visible = false
-	end)
-	pcall(function()
-		gui:Destroy()
-	end)
-end
-
 local function hideAllAndRun()
-	if not selectedFile then
-		statusLbl.Text = "Primero elige un script"
-		statusLbl.TextColor3 = Color3.fromRGB(255, 120, 120)
-		return
-	end
-	if not preparedFn then
-		statusLbl.Text = "Aun preparando... espera"
-		statusLbl.TextColor3 = GOLD
-		return
-	end
-
-	local fileNow = selectedFile
-	local fn = preparedFn
-	statusLbl.Text = "Ejecutando " .. fileNow .. "..."
+	statusLbl.Text = "Cargando " .. selectedFile .. "..."
 	execBtn.Text = "CARGANDO..."
 	execBtn.Active = false
 
-
-	-- Cerrar menu YA (antes de ejecutar) para que no tape la pantalla
-	-- aunque el script tarde o se cuelgue
 	task.spawn(function()
-		pcall(function()
-			tween(panel, 0.2, { BackgroundTransparency = 1 })
-			tween(menuCover, 0.25, { BackgroundTransparency = 1 })
-		end)
-		task.wait(0.25)
-		closeLoaderUI()
-
-		-- Ejecutar DESPUES de quitar el menu
-		task.spawn(function()
-			if not fn then
-				warn("[FlexusHub] No hay funcion preparada para", fileNow)
-				return
+		local ok = loadScriptFile(selectedFile)
+		if ok then
+			statusLbl.Text = "Listo"
+			-- desaparece el menu
+			tween(panel, 0.35, { BackgroundTransparency = 1 })
+			tween(menuCover, 0.4, { BackgroundTransparency = 1 })
+			task.wait(0.4)
+			pcall(function()
+				gui:Destroy()
+			end)
+		else
+			statusLbl.Text = "Error al cargar. Revisa consola."
+			execBtn.Text = "EJECUTAR SCRIPT"
+			execBtn.Active = true
+			-- intento Universal solo si no era Universal
+			if selectedFile ~= "Universal.lua" then
+				statusLbl.Text = "Reintentando Universal..."
+				local ok2 = loadScriptFile("Universal.lua")
+				if ok2 then
+					statusLbl.Text = "Universal cargado"
+					task.wait(0.3)
+					pcall(function()
+						gui:Destroy()
+					end)
+				else
+					statusLbl.Text = "Fallo total. Mira la consola."
+					execBtn.Text = "EJECUTAR SCRIPT"
+					execBtn.Active = true
+				end
 			end
-			local ok, err = pcall(fn)
-			if ok then
-			else
-				warn("[FlexusHub] Error runtime en", fileNow, ":", err)
-			end
-		end)
+		end
 	end)
 end
 
@@ -744,15 +725,16 @@ pcall(function()
 	continueBtn.Activated:Connect(onContinue)
 end)
 
-execBtn.MouseButton1Click:Connect(function()
-	if execBtn.Active then
-		hideAllAndRun()
-	end
-end)
+execBtn.MouseButton1Click:Connect(hideAllAndRun)
 pcall(function()
-	execBtn.Activated:Connect(function()
-		if execBtn.Active then
-			hideAllAndRun()
-		end
-	end)
+	execBtn.Activated:Connect(hideAllAndRun)
 end)
+
+print(
+	"[FlexusHub] loader menu ready | PlaceId="
+		.. tostring(game.PlaceId)
+		.. " GameId="
+		.. tostring(game.GameId)
+		.. " sugerido="
+		.. tostring(selectedFile)
+)
